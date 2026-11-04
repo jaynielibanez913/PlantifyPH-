@@ -9,9 +9,11 @@
     "lint": "tsc --noEmit"
   },
   "dependencies": {
+    "drizzle-orm": "^0.45.4",
     "lucide-react": "^0.511.0",
     "motion": "^12.12.1",
     "next": "^15.3.2",
+    "pg": "^8.23.1",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "zod": "^3.25.7"
@@ -19,8 +21,10 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.7",
     "@types/node": "^22.15.18",
+    "@types/pg": "^8.23.1",
     "@types/react": "^19.1.4",
     "@types/react-dom": "^19.1.4",
+    "drizzle-kit": "^0.31.11",
     "tailwindcss": "^4.1.7",
     "typescript": "^5.8.3"
   }
