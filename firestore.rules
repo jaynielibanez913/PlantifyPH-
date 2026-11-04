@@ -2,15 +2,6 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper functions
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
-    function isOwner(userId) {
-      return isSignedIn() && request.auth.uid == userId;
-    }
-
     // Default deny catch-all
     match /{document=**} {
       allow read, write: if false;
@@ -18,61 +9,57 @@ service cloud.firestore {
 
     // Users collection
     match /users/{userId} {
-      allow read, write: if isSignedIn();
+      allow read, write: if true;
     }
 
     // Plant categories
     match /plantCategories/{categoryId} {
-      allow read: if true;
-      allow write: if isSignedIn();
+      allow read, write: if true;
     }
 
     // Master plants catalog
     match /plants/{plantId} {
-      allow read: if true;
-      allow write: if isSignedIn();
+      allow read, write: if true;
     }
 
     // User personal plants collection
     match /userPlants/{userPlantId} {
-      allow read, write: if isSignedIn();
+      allow read, write: if true;
     }
 
     // Watering schedules
     match /wateringSchedules/{scheduleId} {
-      allow read, write: if isSignedIn();
+      allow read, write: if true;
     }
 
     // Watering logs
     match /wateringLogs/{logId} {
-      allow read, write: if isSignedIn();
+      allow read, write: if true;
     }
 
     // Reminders
     match /reminders/{reminderId} {
-      allow read, write: if isSignedIn();
+      allow read, write: if true;
     }
 
     // Health records
     match /healthRecords/{recordId} {
-      allow read, write: if isSignedIn();
+      allow read, write: if true;
     }
 
     // Article categories
     match /articleCategories/{catId} {
-      allow read: if true;
-      allow write: if isSignedIn();
+      allow read, write: if true;
     }
 
     // Articles / Guides
     match /articles/{articleId} {
-      allow read: if true;
-      allow write: if isSignedIn();
+      allow read, write: if true;
     }
 
     // Activity events
     match /activities/{activityId} {
-      allow read, write: if isSignedIn();
+      allow read, write: if true;
     }
   }
 }
