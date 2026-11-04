@@ -13,12 +13,11 @@ export function PublicHeader({ user: initialUser }: PublicHeaderProps) {
   const [user, setUser] = useState<SafeUser | null>(initialUser);
 
   useEffect(() => {
-    if (initialUser) {
+    const token = getClientSessionToken();
+    if (!token) {
       setUser(initialUser);
       return;
     }
-    const token = getClientSessionToken();
-    if (!token) return;
 
     let cancelled = false;
     apiFetch('/api/auth/me')
@@ -89,10 +88,10 @@ export function PublicHeader({ user: initialUser }: PublicHeaderProps) {
         <div className="flex items-center shrink-0">
           {user ? (
             <Link
-              href="/dashboard"
+              href={user.role === 'ADMIN' ? '/admin' : '/dashboard'}
               className="inline-flex items-center justify-center px-4 py-2.5 text-sm font-semibold text-white bg-[#1B4D3E] rounded-lg hover:bg-[#143B2F] transition-colors whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1B4D3E]"
             >
-              Open Garden
+              {user.role === 'ADMIN' ? 'Admin Console' : 'Open Garden'}
             </Link>
           ) : (
             <Link

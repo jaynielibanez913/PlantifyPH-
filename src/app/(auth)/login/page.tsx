@@ -4,10 +4,14 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Eye, EyeOff } from 'lucide-react';
-import { setClientSessionToken } from '@/lib/client/auth-client';
+import {
+  clearClientSessionToken,
+  setClientSessionToken,
+} from '@/lib/client/auth-client';
 
 export default function LoginPage() {
   const router = useRouter();
+  void router;
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -18,6 +22,7 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
     try {
+      clearClientSessionToken();
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -30,6 +35,7 @@ export default function LoginPage() {
       const data = await res.json();
       if (!res.ok) {
         setError(data?.error?.message ?? 'Invalid email or password.');
+        setLoading(false);
         return;
       }
 
@@ -37,15 +43,11 @@ export default function LoginPage() {
         setClientSessionToken(data.sessionToken);
       }
 
-      if (data?.user?.role === 'ADMIN') {
-        router.replace('/admin');
-      } else {
-        router.replace('/dashboard');
-      }
-      router.refresh();
+      const destination =
+        data?.user?.role === 'ADMIN' ? '/admin' : '/dashboard';
+      window.location.assign(destination);
     } catch {
       setError('Network error while signing in. Please try again.');
-    } finally {
       setLoading(false);
     }
   }

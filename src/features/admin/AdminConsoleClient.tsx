@@ -5,7 +5,11 @@ import { useRouter } from 'next/navigation';
 import { Plus, Trash2 } from 'lucide-react';
 import { WorkspaceShell } from '@/components/layout/WorkspaceShell';
 import { PhotoUploadField } from '@/components/forms/PhotoUploadField';
-import { apiFetch, clearClientSessionToken } from '@/lib/client/auth-client';
+import {
+  apiFetch,
+  clearClientSessionToken,
+  getClientSessionToken,
+} from '@/lib/client/auth-client';
 import { formatManilaDate } from '@/lib/utils/format';
 import type {
   ActivityEvent,
@@ -99,11 +103,9 @@ export function AdminConsoleClient({
   } | null>(null);
 
   useEffect(() => {
-    if (initialUser && initialUser.role !== 'ADMIN') {
-      router.replace('/dashboard');
-      return;
-    }
+    const hasClientToken = Boolean(getClientSessionToken());
     if (
+      !hasClientToken &&
       initialUser?.role === 'ADMIN' &&
       initialSummary &&
       initialUsers &&
@@ -120,11 +122,25 @@ export function AdminConsoleClient({
         const meData = meRes.ok ? await meRes.json() : null;
         if (!meData?.user) {
           clearClientSessionToken();
-          if (!cancelled) router.replace('/login');
+          if (!cancelled) window.location.assign('/login');
           return;
         }
         if (meData.user.role !== 'ADMIN') {
-          if (!cancelled) router.replace('/dashboard');
+          if (!cancelled) window.location.assign('/dashboard');
+          return;
+        }
+
+        // If SSR already loaded fresh admin data for this exact admin user, reuse it immediately
+        if (
+          initialUser?.id === meData.user.id &&
+          initialSummary &&
+          initialUsers &&
+          initialArticles
+        ) {
+          if (!cancelled) {
+            setAdminUser(meData.user);
+            setHydrating(false);
+          }
           return;
         }
 
@@ -135,7 +151,7 @@ export function AdminConsoleClient({
           apiFetch('/api/admin/articles'),
         ]);
         if (!sumRes.ok || !usrRes.ok || !pltRes.ok || !artRes.ok) {
-          if (!cancelled) router.replace('/dashboard');
+          if (!cancelled) window.location.assign('/dashboard');
           return;
         }
         const [sumData, usrData, pltData, artData] = await Promise.all([
@@ -153,14 +169,14 @@ export function AdminConsoleClient({
           setHydrating(false);
         }
       } catch {
-        if (!cancelled) router.replace('/login');
+        if (!cancelled) window.location.assign('/login');
       }
     }
     void load();
     return () => {
       cancelled = true;
     };
-  }, [initialUser, initialSummary, initialUsers, initialArticles, router]);
+  }, [initialUser, initialSummary, initialUsers, initialArticles]);
 
   async function refreshAdmin() {
     const [sumRes, usrRes, pltRes, artRes] = await Promise.all([

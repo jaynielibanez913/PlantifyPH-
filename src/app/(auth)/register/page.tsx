@@ -4,10 +4,14 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Eye, EyeOff } from 'lucide-react';
-import { setClientSessionToken } from '@/lib/client/auth-client';
+import {
+  clearClientSessionToken,
+  setClientSessionToken,
+} from '@/lib/client/auth-client';
 
 export default function RegisterPage() {
   const router = useRouter();
+  void router;
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [location, setLocation] = useState('Metro Manila, Philippines');
@@ -22,6 +26,7 @@ export default function RegisterPage() {
     setError(null);
 
     try {
+      clearClientSessionToken();
       const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -36,6 +41,7 @@ export default function RegisterPage() {
       const data = await res.json();
       if (!res.ok) {
         setError(data?.error?.message ?? 'Could not create your account.');
+        setLoading(false);
         return;
       }
 
@@ -43,11 +49,9 @@ export default function RegisterPage() {
         setClientSessionToken(data.sessionToken);
       }
 
-      router.replace('/dashboard');
-      router.refresh();
+      window.location.assign('/dashboard');
     } catch {
       setError('Network error during registration. Please try again.');
-    } finally {
       setLoading(false);
     }
   }

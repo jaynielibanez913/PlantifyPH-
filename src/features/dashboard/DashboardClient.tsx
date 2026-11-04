@@ -7,7 +7,11 @@ import { AlertTriangle, Check, CheckCircle2, Droplets, Plus } from 'lucide-react
 import type { DashboardSummary } from '@/features/dashboard/service';
 import { WorkspaceShell } from '@/components/layout/WorkspaceShell';
 import { BotanicalImage } from '@/components/shared/BotanicalImage';
-import { apiFetch, clearClientSessionToken } from '@/lib/client/auth-client';
+import {
+  apiFetch,
+  clearClientSessionToken,
+  getClientSessionToken,
+} from '@/lib/client/auth-client';
 import { formatManilaDate, formatRelativeDays } from '@/lib/utils/format';
 import type { SafeUser } from '@/types/domain';
 
@@ -28,7 +32,8 @@ export function DashboardClient({
   const [statusBanner, setStatusBanner] = useState<string | null>(null);
 
   useEffect(() => {
-    if (initialUser && initialSummary) {
+    const hasClientToken = Boolean(getClientSessionToken());
+    if (!hasClientToken && initialUser && initialSummary) {
       setHydrating(false);
       return;
     }
@@ -40,12 +45,19 @@ export function DashboardClient({
         const meData = meRes.ok ? await meRes.json() : null;
         if (!meData?.user) {
           clearClientSessionToken();
-          if (!cancelled) router.replace('/login');
+          if (!cancelled) window.location.assign('/login');
+          return;
+        }
+        if (initialUser?.id === meData.user.id && initialSummary) {
+          if (!cancelled) {
+            setUser(meData.user);
+            setHydrating(false);
+          }
           return;
         }
         const sumRes = await apiFetch('/api/dashboard');
         if (!sumRes.ok) {
-          if (!cancelled) router.replace('/login');
+          if (!cancelled) window.location.assign('/login');
           return;
         }
         const sumData = await sumRes.json();
@@ -55,7 +67,7 @@ export function DashboardClient({
           setHydrating(false);
         }
       } catch {
-        if (!cancelled) router.replace('/login');
+        if (!cancelled) window.location.assign('/login');
       }
     }
 
@@ -63,7 +75,7 @@ export function DashboardClient({
     return () => {
       cancelled = true;
     };
-  }, [initialUser, initialSummary, router]);
+  }, [initialUser, initialSummary]);
 
   async function refreshDashboard() {
     const res = await apiFetch('/api/dashboard');

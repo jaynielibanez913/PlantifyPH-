@@ -10,7 +10,11 @@ import {
   Trash2,
 } from 'lucide-react';
 import { WorkspaceShell } from '@/components/layout/WorkspaceShell';
-import { apiFetch, clearClientSessionToken } from '@/lib/client/auth-client';
+import {
+  apiFetch,
+  clearClientSessionToken,
+  getClientSessionToken,
+} from '@/lib/client/auth-client';
 import { formatManilaDate, formatRelativeDays } from '@/lib/utils/format';
 import type {
   ReminderDetailed,
@@ -81,7 +85,9 @@ export function SchedulesClient({
   } | null>(null);
 
   useEffect(() => {
+    const hasClientToken = Boolean(getClientSessionToken());
     if (
+      !hasClientToken &&
       initialUser &&
       initialOwnedPlants !== null &&
       initialSchedules !== null &&
@@ -98,7 +104,19 @@ export function SchedulesClient({
         const meData = meRes.ok ? await meRes.json() : null;
         if (!meData?.user) {
           clearClientSessionToken();
-          if (!cancelled) router.replace('/login');
+          if (!cancelled) window.location.assign('/login');
+          return;
+        }
+        if (
+          initialUser?.id === meData.user.id &&
+          initialOwnedPlants !== null &&
+          initialSchedules !== null &&
+          initialReminders !== null
+        ) {
+          if (!cancelled) {
+            setUser(meData.user);
+            setHydrating(false);
+          }
           return;
         }
         const [upRes, wsRes, remRes] = await Promise.all([
@@ -107,7 +125,7 @@ export function SchedulesClient({
           apiFetch('/api/reminders'),
         ]);
         if (!upRes.ok || !wsRes.ok || !remRes.ok) {
-          if (!cancelled) router.replace('/login');
+          if (!cancelled) window.location.assign('/login');
           return;
         }
         const [upData, wsData, remData] = await Promise.all([
@@ -123,20 +141,14 @@ export function SchedulesClient({
           setHydrating(false);
         }
       } catch {
-        if (!cancelled) router.replace('/login');
+        if (!cancelled) window.location.assign('/login');
       }
     }
     void load();
     return () => {
       cancelled = true;
     };
-  }, [
-    initialUser,
-    initialOwnedPlants,
-    initialSchedules,
-    initialReminders,
-    router,
-  ]);
+  }, [initialUser, initialOwnedPlants, initialSchedules, initialReminders]);
 
   useEffect(() => {
     const available = ownedPlants.filter(

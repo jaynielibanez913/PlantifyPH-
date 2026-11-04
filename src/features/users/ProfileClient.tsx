@@ -4,7 +4,11 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { WorkspaceShell } from '@/components/layout/WorkspaceShell';
 import { PhotoUploadField } from '@/components/forms/PhotoUploadField';
-import { apiFetch, clearClientSessionToken } from '@/lib/client/auth-client';
+import {
+  apiFetch,
+  clearClientSessionToken,
+  getClientSessionToken,
+} from '@/lib/client/auth-client';
 import type { SafeUser } from '@/types/domain';
 
 interface ProfileClientProps {
@@ -43,7 +47,8 @@ export function ProfileClient({ initialUser }: ProfileClientProps) {
   } | null>(null);
 
   useEffect(() => {
-    if (initialUser) {
+    const hasClientToken = Boolean(getClientSessionToken());
+    if (!hasClientToken && initialUser) {
       setHydrating(false);
       return;
     }
@@ -54,13 +59,13 @@ export function ProfileClient({ initialUser }: ProfileClientProps) {
         const res = await apiFetch('/api/users/me');
         if (!res.ok) {
           clearClientSessionToken();
-          if (!cancelled) router.replace('/login');
+          if (!cancelled) window.location.assign('/login');
           return;
         }
         const data = await res.json();
         const u: SafeUser | undefined = data?.user;
         if (!u) {
-          if (!cancelled) router.replace('/login');
+          if (!cancelled) window.location.assign('/login');
           return;
         }
         if (!cancelled) {
@@ -74,14 +79,14 @@ export function ProfileClient({ initialUser }: ProfileClientProps) {
           setHydrating(false);
         }
       } catch {
-        if (!cancelled) router.replace('/login');
+        if (!cancelled) window.location.assign('/login');
       }
     }
     void load();
     return () => {
       cancelled = true;
     };
-  }, [initialUser, router]);
+  }, [initialUser]);
 
   async function handleProfileSave(e: React.FormEvent) {
     e.preventDefault();

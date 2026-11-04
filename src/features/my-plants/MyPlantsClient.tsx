@@ -14,7 +14,11 @@ import {
 import { WorkspaceShell } from '@/components/layout/WorkspaceShell';
 import { PhotoUploadField } from '@/components/forms/PhotoUploadField';
 import { BotanicalImage } from '@/components/shared/BotanicalImage';
-import { apiFetch, clearClientSessionToken } from '@/lib/client/auth-client';
+import {
+  apiFetch,
+  clearClientSessionToken,
+  getClientSessionToken,
+} from '@/lib/client/auth-client';
 import { formatManilaDate } from '@/lib/utils/format';
 import type {
   PlantCondition,
@@ -88,7 +92,8 @@ export function MyPlantsClient({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (initialUser && initialOwnedPlants !== null) {
+    const hasClientToken = Boolean(getClientSessionToken());
+    if (!hasClientToken && initialUser && initialOwnedPlants !== null) {
       setHydrating(false);
       return;
     }
@@ -100,12 +105,19 @@ export function MyPlantsClient({
         const meData = meRes.ok ? await meRes.json() : null;
         if (!meData?.user) {
           clearClientSessionToken();
-          if (!cancelled) router.replace('/login');
+          if (!cancelled) window.location.assign('/login');
+          return;
+        }
+        if (initialUser?.id === meData.user.id && initialOwnedPlants !== null) {
+          if (!cancelled) {
+            setUser(meData.user);
+            setHydrating(false);
+          }
           return;
         }
         const listRes = await apiFetch('/api/my-plants');
         if (!listRes.ok) {
-          if (!cancelled) router.replace('/login');
+          if (!cancelled) window.location.assign('/login');
           return;
         }
         const listData = await listRes.json();
@@ -115,14 +127,14 @@ export function MyPlantsClient({
           setHydrating(false);
         }
       } catch {
-        if (!cancelled) router.replace('/login');
+        if (!cancelled) window.location.assign('/login');
       }
     }
     void load();
     return () => {
       cancelled = true;
     };
-  }, [initialUser, initialOwnedPlants, router]);
+  }, [initialUser, initialOwnedPlants]);
 
   async function reloadPlants() {
     const res = await apiFetch('/api/my-plants');

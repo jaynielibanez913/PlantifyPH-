@@ -54,11 +54,9 @@ export function WorkspaceShell({
     setSigningOut(true);
     try {
       await apiFetch('/api/auth/logout', { method: 'POST' });
-      clearClientSessionToken();
-      router.replace('/login');
-      router.refresh();
     } finally {
-      setSigningOut(false);
+      clearClientSessionToken();
+      window.location.assign('/login');
     }
   }
 
