@@ -18,6 +18,7 @@ export async function GET() {
       },
       turso: {
         connected: tursoResult.success,
+        isReadOnly: tursoResult.isReadOnly ?? false,
         url: 'libsql://plantifyph-jay913.aws-ap-southeast-1.turso.io',
         message: tursoResult.message,
       },

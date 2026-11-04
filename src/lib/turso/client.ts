@@ -17,12 +17,43 @@ export function getTursoClient(): Client {
 
 export const tursoClient = getTursoClient();
 
-export async function testTursoConnection(): Promise<{ success: boolean; message: string }> {
+export async function testTursoConnection(): Promise<{
+  success: boolean;
+  message: string;
+  isReadOnly?: boolean;
+}> {
   try {
     const client = getTursoClient();
     const result = await client.execute('SELECT 1 as connected');
     if (result.rows.length > 0) {
-      return { success: true, message: 'Successfully connected to Turso database (libsql).' };
+      // Check if token has read-only payload
+      let isReadOnly = false;
+      try {
+        const parts = TURSO_TOKEN.split('.');
+        if (parts.length === 3) {
+          const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString('utf-8'));
+          if (payload?.a === 'ro') {
+            isReadOnly = true;
+          }
+        }
+      } catch (e) {
+        // ignore payload parsing error
+      }
+
+      if (isReadOnly) {
+        return {
+          success: true,
+          isReadOnly: true,
+          message:
+            'Connected to Turso, but the provided token is READ-ONLY ("ro"). Write operations (INSERT/CREATE TABLE) require a Read-Write token.',
+        };
+      }
+
+      return {
+        success: true,
+        isReadOnly: false,
+        message: 'Successfully connected to Turso database with write permissions.',
+      };
     }
     return { success: false, message: 'Turso query returned empty response.' };
   } catch (err: any) {

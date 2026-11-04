@@ -100,11 +100,16 @@ import {
   persistStoreToFirestore,
   syncDocToFirestore,
 } from './firestore-store';
+import {
+  initializeTursoTables,
+  persistStoreToTurso,
+} from '@/lib/turso/store';
 
 declare global {
   var _plantifyStore: PlantifyStore | undefined;
   var _plantifyStoreMtime: number | undefined;
   var _firestoreInitialized: boolean | undefined;
+  var _tursoInitialized: boolean | undefined;
 }
 
 export function persistStore(store?: PlantifyStore): void {
@@ -123,6 +128,11 @@ export function persistStore(store?: PlantifyStore): void {
   // Asynchronously persist to real Firestore database
   persistStoreToFirestore(target).catch((err) => {
     console.error('[PlantifyPH] Error persisting store snapshot to Firestore:', err);
+  });
+
+  // Asynchronously persist to real Turso (libsql) database
+  persistStoreToTurso(target).catch((err) => {
+    console.error('[PlantifyPH] Error persisting store snapshot to Turso:', err);
   });
 }
 
@@ -843,6 +853,13 @@ export function getStore(): PlantifyStore {
     globalThis._firestoreInitialized = true;
     initializeAndSyncFirestore(globalThis._plantifyStore).catch((err) => {
       console.error('[PlantifyPH] Async Firestore sync failed:', err);
+    });
+  }
+
+  if (!globalThis._tursoInitialized) {
+    globalThis._tursoInitialized = true;
+    persistStoreToTurso(globalThis._plantifyStore).catch((err) => {
+      console.error('[PlantifyPH] Async Turso sync failed:', err);
     });
   }
 
