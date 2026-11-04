@@ -9,6 +9,7 @@
     "lint": "tsc --noEmit"
   },
   "dependencies": {
+    "@libsql/client": "^0.18.0",
     "drizzle-orm": "^0.45.4",
     "firebase": "^13.2.0",
     "lucide-react": "^0.511.0",
