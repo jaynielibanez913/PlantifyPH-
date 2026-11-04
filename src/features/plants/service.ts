@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { ConflictError, NotFoundError } from '@/lib/errors/app-error';
-import { getStore, recordActivity } from '@/lib/store/memory-db';
+import { getStore, persistStore, recordActivity } from '@/lib/store/memory-db';
+import { deleteDocFromFirestore } from '@/lib/store/firestore-store';
 import type {
   Plant,
   PlantCategory,
@@ -140,6 +141,7 @@ export function createPlant(
 
   store.plants.set(plant.id, plant);
   recordActivity(actor.id, actor.name, 'Added plant to catalog', plant.name);
+  persistStore(store);
   return getPlantById(plant.id);
 }
 
@@ -166,6 +168,7 @@ export function updatePlant(
 
   store.plants.set(plantId, updated);
   recordActivity(actor.id, actor.name, 'Updated catalog plant', updated.name);
+  persistStore(store);
   return getPlantById(plantId);
 }
 
@@ -177,5 +180,7 @@ export function deletePlant(actor: SafeUser, plantId: string): void {
   }
 
   store.plants.delete(plantId);
+  deleteDocFromFirestore('plants', plantId).catch(() => {});
   recordActivity(actor.id, actor.name, 'Removed plant from catalog', existing.name);
+  persistStore(store);
 }

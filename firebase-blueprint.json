@@ -1,0 +1,238 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile and settings",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string", "maxLength": 100 },
+        "email": { "type": "string", "maxLength": 255 },
+        "role": { "type": "string", "enum": ["ADMIN", "USER"] },
+        "location": { "type": "string", "maxLength": 150 },
+        "bio": { "type": "string", "maxLength": 500 },
+        "avatarUrl": { "type": "string" },
+        "notifyWatering": { "type": "boolean" },
+        "notifyReminders": { "type": "boolean" },
+        "active": { "type": "boolean" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "name", "email", "role"]
+    },
+    "PlantCategory": {
+      "title": "PlantCategory",
+      "description": "Category for plant catalog",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string", "maxLength": 100 },
+        "slug": { "type": "string", "maxLength": 100 },
+        "description": { "type": "string", "maxLength": 500 },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "name", "slug"]
+    },
+    "Plant": {
+      "title": "Plant",
+      "description": "Master catalog plant",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string", "maxLength": 150 },
+        "localName": { "type": "string", "maxLength": 150 },
+        "scientificName": { "type": "string", "maxLength": 150 },
+        "description": { "type": "string", "maxLength": 2000 },
+        "categoryId": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "sunlight": { "type": "string", "maxLength": 300 },
+        "watering": { "type": "string", "maxLength": 300 },
+        "soil": { "type": "string", "maxLength": 300 },
+        "temperature": { "type": "string", "maxLength": 150 },
+        "difficulty": { "type": "string", "enum": ["Easy", "Moderate", "Advanced"] },
+        "toxicity": { "type": "string", "maxLength": 300 },
+        "petSafe": { "type": "boolean" },
+        "recommendedFrequencyDays": { "type": "number" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "name", "categoryId"]
+    },
+    "UserPlant": {
+      "title": "UserPlant",
+      "description": "Plant added to user collection",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "plantId": { "type": "string" },
+        "nickname": { "type": "string", "maxLength": 150 },
+        "acquiredAt": { "type": "string" },
+        "location": { "type": "string", "maxLength": 150 },
+        "notes": { "type": "string", "maxLength": 1000 },
+        "customImageUrl": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "userId", "plantId", "nickname"]
+    },
+    "WateringSchedule": {
+      "title": "WateringSchedule",
+      "description": "Schedule for watering a user plant",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userPlantId": { "type": "string" },
+        "frequencyDays": { "type": "number" },
+        "lastWateredAt": { "type": "string" },
+        "nextWateringAt": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "userPlantId", "frequencyDays"]
+    },
+    "WateringLog": {
+      "title": "WateringLog",
+      "description": "Log entry when a plant is watered",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "scheduleId": { "type": "string" },
+        "wateredAt": { "type": "string" },
+        "notes": { "type": "string", "maxLength": 500 },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "scheduleId", "wateredAt"]
+    },
+    "Reminder": {
+      "title": "Reminder",
+      "description": "Plant care reminder",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "userPlantId": { "type": "string" },
+        "title": { "type": "string", "maxLength": 200 },
+        "description": { "type": "string", "maxLength": 500 },
+        "reminderType": { "type": "string", "enum": ["WATERING", "FERTILIZING", "PRUNING", "REPOTTING", "PEST_CONTROL", "CUSTOM"] },
+        "scheduledAt": { "type": "string" },
+        "completedAt": { "type": "string" },
+        "status": { "type": "string", "enum": ["PENDING", "COMPLETED", "DISMISSED"] },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "userId", "title", "reminderType", "scheduledAt"]
+    },
+    "PlantHealthRecord": {
+      "title": "PlantHealthRecord",
+      "description": "Health observation for a user plant",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userPlantId": { "type": "string" },
+        "condition": { "type": "string", "enum": ["Healthy", "Needs Water", "Pest Issue", "Fungal Issue", "Nutrient Deficiency", "Other"] },
+        "notes": { "type": "string", "maxLength": 1000 },
+        "imageUrl": { "type": "string" },
+        "recordedAt": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "userPlantId", "condition", "recordedAt"]
+    },
+    "ArticleCategory": {
+      "title": "ArticleCategory",
+      "description": "Category for articles and guides",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string", "maxLength": 100 },
+        "slug": { "type": "string", "maxLength": 100 },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "name", "slug"]
+    },
+    "Article": {
+      "title": "Article",
+      "description": "Gardening guide or article",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "authorId": { "type": "string" },
+        "authorName": { "type": "string", "maxLength": 100 },
+        "categoryId": { "type": "string" },
+        "categoryName": { "type": "string", "maxLength": 100 },
+        "title": { "type": "string", "maxLength": 200 },
+        "slug": { "type": "string", "maxLength": 200 },
+        "excerpt": { "type": "string", "maxLength": 500 },
+        "content": { "type": "string", "maxLength": 10000 },
+        "imageUrl": { "type": "string" },
+        "readTimeMinutes": { "type": "number" },
+        "seasonTag": { "type": "string", "maxLength": 100 },
+        "status": { "type": "string", "enum": ["DRAFT", "PUBLISHED", "ARCHIVED"] },
+        "publishedAt": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "title", "slug", "content"]
+    },
+    "ActivityEvent": {
+      "title": "ActivityEvent",
+      "description": "Audit and activity log event",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "actorName": { "type": "string", "maxLength": 100 },
+        "action": { "type": "string", "maxLength": 200 },
+        "targetName": { "type": "string", "maxLength": 200 },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "userId", "action"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "User profile collection"
+    },
+    "/plantCategories/{categoryId}": {
+      "schema": { "$ref": "#/entities/PlantCategory" },
+      "description": "Catalog plant categories"
+    },
+    "/plants/{plantId}": {
+      "schema": { "$ref": "#/entities/Plant" },
+      "description": "Master plant catalog"
+    },
+    "/userPlants/{userPlantId}": {
+      "schema": { "$ref": "#/entities/UserPlant" },
+      "description": "User plant collections"
+    },
+    "/wateringSchedules/{scheduleId}": {
+      "schema": { "$ref": "#/entities/WateringSchedule" },
+      "description": "Watering schedules"
+    },
+    "/wateringLogs/{logId}": {
+      "schema": { "$ref": "#/entities/WateringLog" },
+      "description": "Logs of watering events"
+    },
+    "/reminders/{reminderId}": {
+      "schema": { "$ref": "#/entities/Reminder" },
+      "description": "Plant care reminders"
+    },
+    "/healthRecords/{recordId}": {
+      "schema": { "$ref": "#/entities/PlantHealthRecord" },
+      "description": "Plant health observations"
+    },
+    "/articleCategories/{catId}": {
+      "schema": { "$ref": "#/entities/ArticleCategory" },
+      "description": "Article categories"
+    },
+    "/articles/{articleId}": {
+      "schema": { "$ref": "#/entities/Article" },
+      "description": "Gardening guides and articles"
+    },
+    "/activities/{activityId}": {
+      "schema": { "$ref": "#/entities/ActivityEvent" },
+      "description": "Activity audit log"
+    }
+  }
+}

@@ -1,0 +1,78 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // Default deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Users collection
+    match /users/{userId} {
+      allow read, write: if isSignedIn();
+    }
+
+    // Plant categories
+    match /plantCategories/{categoryId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    // Master plants catalog
+    match /plants/{plantId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    // User personal plants collection
+    match /userPlants/{userPlantId} {
+      allow read, write: if isSignedIn();
+    }
+
+    // Watering schedules
+    match /wateringSchedules/{scheduleId} {
+      allow read, write: if isSignedIn();
+    }
+
+    // Watering logs
+    match /wateringLogs/{logId} {
+      allow read, write: if isSignedIn();
+    }
+
+    // Reminders
+    match /reminders/{reminderId} {
+      allow read, write: if isSignedIn();
+    }
+
+    // Health records
+    match /healthRecords/{recordId} {
+      allow read, write: if isSignedIn();
+    }
+
+    // Article categories
+    match /articleCategories/{catId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    // Articles / Guides
+    match /articles/{articleId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    // Activity events
+    match /activities/{activityId} {
+      allow read, write: if isSignedIn();
+    }
+  }
+}

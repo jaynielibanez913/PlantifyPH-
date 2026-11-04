@@ -55,6 +55,7 @@ export function createPlantHealthRecord(
     `Logged health observation (${input.condition})`,
     owned.nickname
   );
+  persistStore(store);
   return record;
 }
 

@@ -94,6 +94,7 @@ export function createReminder(
 
   store.reminders.set(reminder.id, reminder);
   recordActivity(user.id, user.name, `Scheduled ${input.reminderType.toLowerCase()} reminder`, input.title);
+  persistStore(store);
   return enrichReminder(reminder);
 }
 

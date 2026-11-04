@@ -44,6 +44,7 @@ export function updateUserProfile(
 
   store.users.set(user.id, user);
   recordActivity(user.id, user.name, 'Updated profile preferences', user.location);
+  persistStore(store);
   return toSafeUser(user);
 }
 
@@ -70,6 +71,7 @@ export function changeUserPassword(
   user.updatedAt = new Date().toISOString();
   store.users.set(user.id, user);
   recordActivity(user.id, user.name, 'Changed account password', 'Account Security');
+  persistStore(store);
 }
 
 export function deactivateUserAccount(userId: string): void {

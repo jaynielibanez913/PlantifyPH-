@@ -95,6 +95,18 @@ function deserializeStore(raw: SerializedStore): PlantifyStore {
   };
 }
 
+import {
+  initializeAndSyncFirestore,
+  persistStoreToFirestore,
+  syncDocToFirestore,
+} from './firestore-store';
+
+declare global {
+  var _plantifyStore: PlantifyStore | undefined;
+  var _plantifyStoreMtime: number | undefined;
+  var _firestoreInitialized: boolean | undefined;
+}
+
 export function persistStore(store?: PlantifyStore): void {
   const target = store ?? globalThis._plantifyStore;
   if (!target) return;
@@ -105,8 +117,13 @@ export function persistStore(store?: PlantifyStore): void {
     const stat = fs.statSync(STORE_FILE);
     globalThis._plantifyStoreMtime = stat.mtimeMs;
   } catch (err) {
-    console.warn('[PlantifyPH] Could not persist store snapshot:', err);
+    console.warn('[PlantifyPH] Could not persist store snapshot file:', err);
   }
+
+  // Asynchronously persist to real Firestore database
+  persistStoreToFirestore(target).catch((err) => {
+    console.error('[PlantifyPH] Error persisting store snapshot to Firestore:', err);
+  });
 }
 
 function createSeededStore(): PlantifyStore {
@@ -821,6 +838,14 @@ export function getStore(): PlantifyStore {
     globalThis._plantifyStore = createSeededStore();
     persistStore(globalThis._plantifyStore);
   }
+
+  if (!globalThis._firestoreInitialized) {
+    globalThis._firestoreInitialized = true;
+    initializeAndSyncFirestore(globalThis._plantifyStore).catch((err) => {
+      console.error('[PlantifyPH] Async Firestore sync failed:', err);
+    });
+  }
+
   return globalThis._plantifyStore;
 }
 

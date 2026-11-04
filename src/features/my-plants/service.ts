@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { AuthorizationError, NotFoundError } from '@/lib/errors/app-error';
-import { getStore, recordActivity } from '@/lib/store/memory-db';
+import { getStore, persistStore, recordActivity } from '@/lib/store/memory-db';
+import { deleteDocFromFirestore } from '@/lib/store/firestore-store';
 import { getPlantById } from '@/features/plants/service';
 import type {
   PlantCondition,
@@ -161,6 +162,7 @@ export function addUserPlant(
   }
 
   recordActivity(user.id, user.name, 'Added plant to personal collection', created.nickname);
+  persistStore(store);
 
   return {
     ...created,
@@ -193,6 +195,7 @@ export function updateUserPlant(
 
   store.userPlants.set(owned.id, owned);
   recordActivity(user.id, user.name, 'Updated personal plant details', owned.nickname);
+  persistStore(store);
 
   return {
     ...owned,
@@ -212,24 +215,30 @@ export function deleteUserPlant(user: SafeUser, userPlantId: string): void {
       for (const [logId, log] of store.wateringLogs.entries()) {
         if (log.scheduleId === wsId) {
           store.wateringLogs.delete(logId);
+          deleteDocFromFirestore('wateringLogs', logId).catch(() => {});
         }
       }
       store.wateringSchedules.delete(wsId);
+      deleteDocFromFirestore('wateringSchedules', wsId).catch(() => {});
     }
   }
 
   for (const [remId, rem] of store.reminders.entries()) {
     if (rem.userPlantId === owned.id) {
       store.reminders.delete(remId);
+      deleteDocFromFirestore('reminders', remId).catch(() => {});
     }
   }
 
   for (const [hrId, hr] of store.healthRecords.entries()) {
     if (hr.userPlantId === owned.id) {
       store.healthRecords.delete(hrId);
+      deleteDocFromFirestore('healthRecords', hrId).catch(() => {});
     }
   }
 
   store.userPlants.delete(owned.id);
+  deleteDocFromFirestore('userPlants', owned.id).catch(() => {});
   recordActivity(user.id, user.name, 'Removed plant from collection', owned.nickname);
+  persistStore(store);
 }

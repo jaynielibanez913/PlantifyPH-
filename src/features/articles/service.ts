@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { ConflictError, NotFoundError } from '@/lib/errors/app-error';
-import { getStore, recordActivity } from '@/lib/store/memory-db';
+import { getStore, persistStore, recordActivity } from '@/lib/store/memory-db';
 import type { Article, ArticleCategory, ArticleStatus, SafeUser } from '@/types/domain';
 
 function slugify(value: string): string {
@@ -108,5 +108,6 @@ export function createArticle(
 
   store.articles.set(article.id, article);
   recordActivity(author.id, author.name, 'Published gardening guide', article.title);
+  persistStore(store);
   return article;
 }

@@ -108,6 +108,7 @@ export function createWateringSchedule(
     `Created ${input.frequencyDays}-day watering schedule`,
     ownedPlant.nickname
   );
+  persistStore(store);
   return enrichSchedule(schedule);
 }
 
@@ -182,6 +183,7 @@ export function completeWateringSchedule(
     'Completed scheduled watering',
     ownedPlant?.nickname ?? 'Plant'
   );
+  persistStore(store);
 
   return enrichSchedule(schedule);
 }
